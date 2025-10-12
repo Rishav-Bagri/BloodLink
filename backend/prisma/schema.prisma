@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  name         String
+  dateOfBirth  DateTime
+  gender       String
+  contact      String
+  email        String?         @unique
+  bloodGroup   String
+  userType     UserType
+  lastDonation DateTime?       // last donation date
+  isEligible   Boolean         @default(true) // donor eligibility
+  weight       Float?          // optional health info
+  hemoglobin   Float?          // optional health info
+
+  donations    DonationEvent[] 
+  requests     BloodRequest[]  
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+enum UserType {
+  DONOR
+  PATIENT
+  STAFF
+}
+
+model Hospital {
+  id           String          @id @default(cuid())
+  name         String
+  address      String
+  city         String
+  state        String
+  pincode      String
+  contact      String
+  latitude     Float
+  longitude    Float
+
+  inventories  BloodInventory[]
+  requests     BloodRequest[]
+  donations    DonationEvent[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Camp {
+  id           String          @id @default(cuid())
+  name         String
+  location     String
+  latitude     Float
+  longitude    Float
+  startDate    DateTime
+  endDate      DateTime
+  organizer    String
+
+  donations    DonationEvent[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model DonationEvent {
+  id           String    @id @default(cuid())
+  donor        User      @relation(fields: [donorId], references: [id])
+  donorId      String
+  hospital     Hospital? @relation(fields: [hospitalId], references: [id])
+  hospitalId   String?
+  camp         Camp?     @relation(fields: [campId], references: [id])
+  campId       String?
+  date         DateTime
+  unitsDonated Int
+  inventory    BloodInventory[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model BloodInventory {
+  id          String        @id @default(cuid())
+  hospital    Hospital      @relation(fields: [hospitalId], references: [id])
+  hospitalId  String
+  bloodGroup  String
+  quantity    Int           // units in this batch
+  expiryDate  DateTime      // expiry for this batch
+  donation    DonationEvent @relation(fields: [donationId], references: [id])
+  donationId  String
+  minQuantity Int           @default(0) // optional threshold alert
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BloodRequest {
+  id             String         @id @default(cuid())
+  receiver       User           @relation(fields: [receiverId], references: [id])
+  receiverId     String
+  hospital       Hospital?      @relation(fields: [hospitalId], references: [id])
+  hospitalId     String?
+  latitude       Float?         // optional: request location for emergencies
+  longitude      Float?         // optional: request location for emergencies
+  bloodGroup     String
+  unitsRequired  Int
+  status         RequestStatus  @default(PENDING)
+  isEmergency    Boolean        @default(false)
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+
+enum RequestStatus {
+  PENDING
+  FULFILLED
+  CANCELLED
+}
