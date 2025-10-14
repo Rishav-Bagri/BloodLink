@@ -6,8 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
-}
+ }
 
 datasource db {
   provider = "postgresql"
@@ -27,6 +26,8 @@ model User {
   isEligible   Boolean         @default(true) // donor eligibility
   weight       Float?          // optional health info
   hemoglobin   Float?          // optional health info
+  hospitalId   String?
+  hospital     Hospital?  @relation(fields: [hospitalId], references: [id])
 
   donations    DonationEvent[] 
   requests     BloodRequest[]  
@@ -52,6 +53,7 @@ model Hospital {
   latitude     Float
   longitude    Float
 
+  user         User[]
   inventories  BloodInventory[]
   requests     BloodRequest[]
   donations    DonationEvent[]
