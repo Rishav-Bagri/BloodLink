@@ -1,7 +1,7 @@
 // pages/Users.jsx
 import React, { useState } from "react"
 
-export default function Users() {
+export default function UserForm() {
   const [formData, setFormData] = useState({
     name: "",
     dateOfBirth: "",

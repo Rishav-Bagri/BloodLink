@@ -16,8 +16,6 @@ const Hospital=()=>{
                 Hospital Login
             </div>
         </div>
-                
-            
     </div>
 }
 
