@@ -1,7 +1,7 @@
 import { useState } from "react"
 
 export default function HospitalForm() {
-    const [isUpdate, setIsUpdate] = useState(false)
+    const logged = localStorage["logged"]||0
     const [id, setId] = useState("")
     const [formData, setFormData] = useState({
         name: "",
@@ -24,10 +24,10 @@ export default function HospitalForm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const url = isUpdate
+            const url = logged
                 ? `http://localhost:3000/api/v1/hospitals/update/${id}`
                 : "http://localhost:3000/api/v1/hospitals/create"
-            const method = isUpdate ? "PUT" : "POST"
+            const method = logged ? "PUT" : "POST"
 
             const res = await fetch(url, {
                 method,
@@ -45,7 +45,7 @@ export default function HospitalForm() {
             }
 
             const data = await res.json()
-            alert(isUpdate ? "Hospital updated!" : "Hospital created!")
+            alert(logged ? "Hospital updated!" : "Hospital created!")
             console.log("Response:", data)
         } catch (err) {
             console.error("Request failed:", err)
@@ -57,20 +57,13 @@ export default function HospitalForm() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
             <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-                {/* Toggle header */}
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-semibold text-gray-800">
-                        {isUpdate ? "Update Hospital" : "Create Hospital"}
+                        {logged ? "Update Hospital" : "Create Hospital"}
                     </h2>
-                    <button
-                        onClick={() => setIsUpdate(!isUpdate)}
-                        className="text-sm text-blue-500 hover:underline"
-                    >
-                        {isUpdate ? "Switch to Create" : "Switch to Update"}
-                    </button>
                 </div>
 
-                {isUpdate && (
+                {!!logged && (
                     <input
                         type="text"
                         name="id"
@@ -80,7 +73,7 @@ export default function HospitalForm() {
                         className="mb-4 w-full border rounded-md p-2"
                     />
                 )}
-
+                
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <input
                         type="text"
@@ -159,7 +152,7 @@ export default function HospitalForm() {
                         type="submit"
                         className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition"
                     >
-                        {isUpdate ? "Update Hospital" : "Create Hospital"}
+                        {logged ? "Update Hospital" : "Create Hospital"}
                     </button>
                 </form>
             </div>
