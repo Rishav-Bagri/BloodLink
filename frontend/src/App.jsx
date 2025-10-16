@@ -12,6 +12,7 @@ import CampCreate from "./pages/Camp/CampCreate"
 import DonationCreate from "./pages/Donate/DonationCreate"
 import User from "./pages/User/User"
 import Home from "./pages/Home"
+import Camps from "./pages/Camp/Camps"
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
         <Route path="/hospital/bulk" element={<HospitalList />} />
         <Route path="/hospital/:id" element={<HospitalDetail />} />
         
-        <Route path="/camps" element={<HospitalForm />} />
+        <Route path="/camps" element={<Camps />} />
         <Route path="/camps/create" element={<CampCreate />} />
         
         <Route path="/donate" element={<DonationCreate />} />
