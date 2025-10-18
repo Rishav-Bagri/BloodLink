@@ -57,10 +57,23 @@ model Hospital {
   inventories  BloodInventory[]
   requests     BloodRequest[]
   donations    DonationEvent[]
+  account      HospitalAccount[]
 
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 }
+
+model HospitalAccount {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  hospital     Hospital @relation(fields: [hospitalId], references: [id])
+  hospitalId   String
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 
 model Camp {
   id           String          @id @default(cuid())
