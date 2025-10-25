@@ -34,7 +34,12 @@ const HospitalDashboard = () => {
     setSearchResults([])
     setSearchTerm(user.name)
     // navigate immediately to donation page with user details
-    navigate("/donate", { state: { user } })
+    navigate("/donate", { 
+        state: { 
+            user: selectedUser, 
+            hospital: hospitalInfo // Pass the hospital object here
+        } 
+    });
   }
 
   return (

@@ -1,141 +1,155 @@
-import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const DonationCreate = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Receive user and hospital/camp info via state from previous page
-  const { user, hospital, camp } = location.state || {}
+  const { user, hospital, camp } = location.state || {};
 
-  const [donorName, setDonorName] = useState(user?.name || "")
-  const [donorContact, setDonorContact] = useState(user?.contact || "")
-  const [donorEmail, setDonorEmail] = useState(user?.email || "")
-  const [unitsDonated, setUnitsDonated] = useState(1)
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10)) // default today
+  // Display-only data
+  const donorName = user?.name || "N/A";
+  const donorContact = user?.contact || "N/A";
+  const bloodGroup = user?.bloodGroup || "N/A";
+  const hospitalName = hospital?.name || "N/A";
+  const campName = camp?.name || "N/A";
+  const donationDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  // State for the form
+  const [unitsDonated, setUnitsDonated] = useState(1);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (unitsDonated <= 0) {
+      setError("Units donated must be at least 1.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError("");
 
     const newDonation = {
       donorId: user?.id,
       hospitalId: hospital?.id,
       campId: camp?.id || null,
-      date,
+      date: donationDate,
       unitsDonated: parseInt(unitsDonated),
+    };
+
+    try {
+      // API endpoint from your backend route
+      const response = await fetch("http://localhost:3000/api/v1/donations/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newDonation),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Navigate to a success page or dashboard after creation
+        // You might want to pass some state to the next page
+        navigate("/dashboard", { state: { message: "Donation logged successfully!" } });
+      } else {
+        setError(data.error || "An unknown error occurred.");
+      }
+    } catch (err) {
+      console.error("Donation creation failed:", err);
+      setError("Failed to connect to the server. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("Logging Donation:", newDonation)
-
-    // TODO: call backend API to create donation event
-    // after success:
-    // navigate("/dashboard")
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Log Blood Donation</h1>
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Log Your Donation
+        </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
-          {/* Donor Name */}
+          {/* Display Section */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">Donor Name</label>
-            <input
-              type="text"
-              value={donorName}
-              onChange={(e) => setDonorName(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
+            <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600">
+              {donorName}
+            </div>
           </div>
-
-          {/* Donor Contact */}
-          <div>
-            <label className="block text-gray-700 mb-1 font-medium">Contact Number</label>
-            <input
-              type="text"
-              value={donorContact}
-              onChange={(e) => setDonorContact(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-1 font-medium">Contact</label>
+              <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600">
+                {donorContact}
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1 font-medium">Blood Group</label>
+              <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600 font-semibold">
+                {bloodGroup}
+              </div>
+            </div>
           </div>
-
-          {/* Donor Email */}
-          <div>
-            <label className="block text-gray-700 mb-1 font-medium">Email</label>
-            <input
-              type="email"
-              value={donorEmail}
-              onChange={(e) => setDonorEmail(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          </div>
-
-          {/* Hospital (read-only) */}
-          {hospital && (
+          {hospitalName !== "N/A" && (
             <div>
               <label className="block text-gray-700 mb-1 font-medium">Hospital</label>
-              <input
-                type="text"
-                value={hospital.name}
-                readOnly
-                className="w-full border px-4 py-2 rounded-md bg-gray-100 cursor-not-allowed"
-              />
+              <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600">
+                {hospitalName}
+              </div>
             </div>
           )}
-
-          {/* Camp (read-only, optional) */}
-          {camp && (
+          {campName !== "N/A" && (
             <div>
               <label className="block text-gray-700 mb-1 font-medium">Camp</label>
-              <input
-                type="text"
-                value={camp.name}
-                readOnly
-                className="w-full border px-4 py-2 rounded-md bg-gray-100 cursor-not-allowed"
-              />
+              <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600">
+                {campName}
+              </div>
             </div>
           )}
-
-          {/* Date */}
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">Donation Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
+            <label className="block text-gray-700 mb-1 font-medium">Date</label>
+            <div className="w-full border px-4 py-2 rounded-md bg-gray-100 text-gray-600">
+              {donationDate}
+            </div>
           </div>
-
-          {/* Units Donated */}
+          <hr className="my-2"/>
+          {/* Input Section */}
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">Units Donated</label>
+            <label htmlFor="unitsDonated" className="block text-gray-700 mb-1 font-bold text-lg">
+              How many units did you donate?
+            </label>
             <input
+              id="unitsDonated"
               type="number"
               min="1"
               value={unitsDonated}
               onChange={(e) => setUnitsDonated(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border-gray-300 px-4 py-3 rounded-md text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-green-500"
               required
+              disabled={isLoading}
             />
           </div>
-
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-center">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
-            className="bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition mt-2"
+            className="bg-green-600 text-white font-bold py-3 rounded-md hover:bg-green-700 transition-transform transform hover:scale-105 mt-2 text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Log Donation
+            {isLoading ? "Submitting..." : "Confirm Donation"}
           </button>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DonationCreate
+export default DonationCreate;
+
