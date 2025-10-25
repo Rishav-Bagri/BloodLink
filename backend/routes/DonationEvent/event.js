@@ -79,24 +79,24 @@ donationEventRouter.get('/camp/:campId', async (req, res) => {
 
 // CREATE donation
 donationEventRouter.post('/create', async (req, res) => {
-  // Destructure all required fields from the request body
-  const { donorId, hospitalId, campId, date, unitsDonated, bloodGroup } = req.body;
+  const { donorId, hospitalId, campId, date, unitsDonated, bloodGroup } = req.body
 
   // --- Input Validation ---
   if (!donorId || !date || !unitsDonated || !bloodGroup) {
-    return res.status(400).json({ error: 'Missing required fields: donorId, date, unitsDonated, and bloodGroup are required.' });
+    return res.status(400).json({
+      error: 'Missing required fields: donorId, date, unitsDonated, and bloodGroup are required.'
+    })
   }
-  
+
   if (!hospitalId && !campId) {
-    return res.status(400).json({ error: 'A donation must be linked to either a hospital or a camp.' });
+    return res.status(400).json({
+      error: 'A donation must be linked to either a hospital or a camp.'
+    })
   }
 
   try {
-    // --- Database Transaction ---
-    // Use a transaction to ensure both records (DonationEvent and BloodInventory) are created,
-    // or neither is, if an error occurs.
+    // --- Transaction begins ---
     const newDonation = await prisma.$transaction(async (tx) => {
-
       // Step 1: Create the DonationEvent record
       const donationEvent = await tx.DonationEvent.create({
         data: {
@@ -106,47 +106,68 @@ donationEventRouter.post('/create', async (req, res) => {
           date: new Date(date),
           unitsDonated: parseInt(unitsDonated),
         },
-      });
+      })
 
-      // Step 2: Update the User's last donation date and eligibility
-      // This is a crucial step to track donor status.
+      // Step 2: Update donor eligibility and last donation date
       await tx.user.update({
         where: { id: donorId },
         data: {
           lastDonation: new Date(date),
-          isEligible: false, // Donor is not eligible immediately after donating
+          isEligible: false,
         },
-      });
+      })
 
-      // Step 3: If the donation is associated with a hospital, create a BloodInventory record.
-      // Based on your schema, inventory is always tied to a hospital.
+      // Step 3: Update or create BloodInventory if the donation was to a hospital
       if (hospitalId) {
-        // Set a standard expiry date for blood units (e.g., 42 days)
-        const expiryDate = new Date(date);
-        expiryDate.setDate(expiryDate.getDate() + 42);
+        const expiryDate = new Date(date)
+        expiryDate.setDate(expiryDate.getDate() + 42) // standard 42-day expiry
 
-        await tx.BloodInventory.create({
-          data: {
-            hospitalId: hospitalId,
-            bloodGroup: bloodGroup,
-            quantity: parseInt(unitsDonated),
-            expiryDate: expiryDate,
-            donationId: donationEvent.id, // Link the inventory to this specific donation event
+        // Check if inventory for this hospital & blood group already exists
+        const existingInventory = await tx.BloodInventory.findFirst({
+          where: {
+            hospitalId,
+            bloodGroup,
           },
-        });
+        })
+
+        if (existingInventory) {
+          // Increment existing stock
+          await tx.BloodInventory.update({
+            where: { id: existingInventory.id },
+            data: {
+              quantity: existingInventory.quantity + parseInt(unitsDonated),
+              // optionally extend expiry date if newer
+              expiryDate:
+                expiryDate > existingInventory.expiryDate
+                  ? expiryDate
+                  : existingInventory.expiryDate,
+            },
+          })
+        } else {
+          // Create new inventory record
+          await tx.BloodInventory.create({
+            data: {
+              hospitalId,
+              bloodGroup,
+              quantity: parseInt(unitsDonated),
+              expiryDate,
+              donationId: donationEvent.id,
+            },
+          })
+        }
       }
 
-      // The transaction will return the created donation event
-      return donationEvent;
-    });
+      return donationEvent
+    })
 
-    // If the transaction is successful, send a 201 Created response
-    res.status(201).json(newDonation);
+    // --- Success response ---
+    res.status(201).json(newDonation)
   } catch (err) {
-    console.error('Failed to create donation and update inventory:', err);
-    res.status(500).json({ error: 'Failed to log donation due to a server error.' });
+    console.error('Failed to create donation and update inventory:', err)
+    res.status(500).json({ error: 'Failed to log donation due to a server error.' })
   }
-});
+})
+
 
 // UPDATE donation
 donationEventRouter.put('/update/:id', async (req, res) => {

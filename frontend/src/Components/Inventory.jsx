@@ -2,11 +2,12 @@ import { useState, useEffect } from "react"
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
-  const hospitalId = localStorage.getItem("logged") // hospital logged-in id
+  const hospitalId = localStorage.getItem("hospitalId") // hospital logged-in id
 
   useEffect(() => {
     const fetchInventory = async () => {
       try {
+        console.log("hi")
         const res = await fetch(`http://localhost:3000/api/v1/inventory/hospital/${hospitalId}`)
         if (!res.ok) throw new Error("Failed to fetch inventory")
         const data = await res.json()
@@ -23,7 +24,7 @@ const Inventory = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Hospital Blood Inventory</h1>
-
+      {console.log(inventory)}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300">
           <thead className="bg-gray-100">
@@ -31,8 +32,6 @@ const Inventory = () => {
               <th className="px-4 py-2 border">Blood Group</th>
               <th className="px-4 py-2 border">Quantity</th>
               <th className="px-4 py-2 border">Expiry Date</th>
-              <th className="px-4 py-2 border">Donation Event</th>
-              <th className="px-4 py-2 border">Min Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -41,8 +40,6 @@ const Inventory = () => {
                 <td className="px-4 py-2 border">{item.bloodGroup}</td>
                 <td className="px-4 py-2 border">{item.quantity}</td>
                 <td className="px-4 py-2 border">{new Date(item.expiryDate).toLocaleDateString()}</td>
-                <td className="px-4 py-2 border">{item.donation?.id || "N/A"}</td>
-                <td className="px-4 py-2 border">{item.minQuantity}</td>
               </tr>
             ))}
           </tbody>

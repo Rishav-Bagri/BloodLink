@@ -32,10 +32,11 @@ const DonationCreate = () => {
 
     const newDonation = {
       donorId: user?.id,
-      hospitalId: hospital?.id,
-      campId: camp?.id || null,
+      hospitalId: localStorage.getItem("hospitalId") || null,
+      campId: localStorage.getItem("campId") || null,
       date: donationDate,
       unitsDonated: parseInt(unitsDonated),
+      bloodGroup:user.bloodGroup
     };
 
     try {
@@ -53,7 +54,7 @@ const DonationCreate = () => {
       if (response.ok) {
         // Navigate to a success page or dashboard after creation
         // You might want to pass some state to the next page
-        navigate("/dashboard", { state: { message: "Donation logged successfully!" } });
+        navigate("/hospital/dashboard", { state: { message: "Donation logged successfully!" } });
       } else {
         setError(data.error || "An unknown error occurred.");
       }
