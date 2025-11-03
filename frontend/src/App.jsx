@@ -13,6 +13,8 @@ import DonationCreate from "./pages/Donate/DonationCreate"
 import User from "./pages/User/User"
 import Home from "./pages/Home"
 import Camps from "./pages/Camp/Camps"
+import HospitalRegister from "./pages/Hospital/HospitalRegister"
+import HospitalUpdate from "./pages/Hospital/HospitalUpdate"
 
 function App() {
   return (
@@ -26,7 +28,8 @@ function App() {
         
         <Route path="/hospital" element={<Hospital />} />
         <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
-        <Route path="/hospital/register" element={<HospitalForm />} />
+        <Route path="/hospital/register" element={<HospitalRegister />} />
+        <Route path="/hospital/update" element={<HospitalUpdate />} />
         <Route path="/hospital/login" element={<HospitalLogin />} />
         <Route path="/hospital/bulk" element={<HospitalList />} />
         <Route path="/hospital/:id" element={<HospitalDetail />} />

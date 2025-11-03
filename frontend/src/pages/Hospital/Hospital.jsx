@@ -10,7 +10,7 @@ const Hospital=()=>{
         </div>
         <div className="flex w-1/4 gap-4 justify-between m-10 ">
             <div onClick={()=>navigate("/hospital/register")} className="cursor-pointer p-2 w-[150px] text-center border bg-green-200 rounded-md">
-                {!!logged?<div>Update</div>:<div>Register</div>} Hospital
+                {!!logged&&<div>Register</div>} Hospital
             </div>
             <div onClick={()=>navigate("/hospital/login")} className="p-2 w-[150px] cursor-pointer  text-center  border bg-green-200 rounded-md">
                 Hospital Login

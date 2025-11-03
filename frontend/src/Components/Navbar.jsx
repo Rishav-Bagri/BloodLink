@@ -8,8 +8,9 @@ const Navbar = () => {
     // Check if user is logged in (checking localStorage for hospitalId)
     useEffect(() => {
         const hospitalId = localStorage.getItem('hospitalId')
+        
         setIsLoggedIn(!!hospitalId)
-    }, [])
+    }, [localStorage.getItem('hospitalId')])
 
     const handleLogout = () => {
         // Clear auth data
@@ -38,6 +39,9 @@ const Navbar = () => {
                         >
                             Dashboard
                         </button>
+                        <div onClick={()=>navigate("/hospital/update")} className="px-4 py-1 bg-white text-red-700 rounded-md hover:bg-gray-100">
+                            {!!isLoggedIn?<div>Update details</div>:<div>Register</div>}
+                        </div>
                         <button 
                             onClick={handleLogout}
                             className="px-4 py-1 bg-white text-red-700 rounded-md hover:bg-gray-100"

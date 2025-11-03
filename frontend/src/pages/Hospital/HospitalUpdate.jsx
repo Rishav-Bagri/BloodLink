@@ -1,10 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
-export default function HospitalRegister() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+export default function HospitalUpdate() {
+  const [hospitalData, setHospitalData] = useState({
     name: "",
     address: "",
     city: "",
@@ -15,39 +13,36 @@ export default function HospitalRegister() {
     longitude: ""
   })
 
-  const navigate = useNavigate()
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    setHospitalData({ ...hospitalData, [e.target.name]: e.target.value })
   }
-
-  const handleRegister = async (e) => {
+  const navigate=useNavigate()
+  const handleUpdate = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch("http://localhost:3000/api/v1/hospitals/register", {
-        method: "POST",
+      const hospitalId = localStorage.getItem("hospitalId")
+      if (!hospitalId) throw new Error("Hospital not logged in")
+
+      // send data to backend
+      const res = await fetch(`http://localhost:3000/api/v1/hospitals/update/${hospitalId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
+            loggedId:hospitalId,
+          // send empty string as placeholder, backend can handle defaults
           hospitalData: {
-            name: formData.name,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            pincode: formData.pincode,
-            contact: formData.contact,
-            latitude: parseFloat(formData.latitude) || 0,
-            longitude: parseFloat(formData.longitude) || 0
-          }
+            ...hospitalData,
+            latitude: parseFloat(hospitalData.latitude) || 0,
+            longitude: parseFloat(hospitalData.longitude) || 0
+        }
         })
       })
 
-      if (!res.ok) throw new Error("Failed to register hospital")
+      if (!res.ok) throw new Error("Failed to update hospital")
       const data = await res.json()
-      alert("Hospital registered successfully!")
+      alert("Hospital details updated successfully!")
       console.log(data)
-      navigate("/hospital/login")
+      navigate("/hospital/dashboard")
     } catch (err) {
       console.error(err)
       alert(err.message)
@@ -57,31 +52,14 @@ export default function HospitalRegister() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <form onSubmit={handleRegister} className="flex flex-col gap-4">
-          <h2 className="text-2xl font-semibold mb-4">Register Hospital</h2>
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            className="border p-2 rounded-md"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="border p-2 rounded-md"
-          />
+        <form onSubmit={handleUpdate} className="flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold mb-4">Update Hospital Details</h2>
 
           <input
             type="text"
             name="name"
             placeholder="Hospital Name"
-            value={formData.name}
+            value={hospitalData.name}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -89,7 +67,7 @@ export default function HospitalRegister() {
             type="text"
             name="address"
             placeholder="Address"
-            value={formData.address}
+            value={hospitalData.address}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -97,7 +75,7 @@ export default function HospitalRegister() {
             type="text"
             name="city"
             placeholder="City"
-            value={formData.city}
+            value={hospitalData.city}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -105,7 +83,7 @@ export default function HospitalRegister() {
             type="text"
             name="state"
             placeholder="State"
-            value={formData.state}
+            value={hospitalData.state}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -113,7 +91,7 @@ export default function HospitalRegister() {
             type="text"
             name="pincode"
             placeholder="Pincode"
-            value={formData.pincode}
+            value={hospitalData.pincode}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -121,7 +99,7 @@ export default function HospitalRegister() {
             type="text"
             name="contact"
             placeholder="Contact Number"
-            value={formData.contact}
+            value={hospitalData.contact}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -129,7 +107,7 @@ export default function HospitalRegister() {
             type="number"
             name="latitude"
             placeholder="Latitude"
-            value={formData.latitude}
+            value={hospitalData.latitude}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
@@ -137,16 +115,16 @@ export default function HospitalRegister() {
             type="number"
             name="longitude"
             placeholder="Longitude"
-            value={formData.longitude}
+            value={hospitalData.longitude}
             onChange={handleChange}
             className="border p-2 rounded-md"
           />
 
           <button
             type="submit"
-            className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition"
+            className="bg-green-600 text-white p-2 rounded-md hover:bg-green-700 transition"
           >
-            Register Hospital
+            Update Hospital
           </button>
         </form>
       </div>
