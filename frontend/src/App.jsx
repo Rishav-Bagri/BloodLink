@@ -15,6 +15,8 @@ import Home from "./pages/Home"
 import Camps from "./pages/Camp/Camps"
 import HospitalRegister from "./pages/Hospital/HospitalRegister"
 import HospitalUpdate from "./pages/Hospital/HospitalUpdate"
+import EmergencySearch from "./pages/Emergency/EmergencySearch"
+import ReceiveBlood from "./pages/Receive/ReceiveBlood"
 
 function App() {
   return (
@@ -36,6 +38,10 @@ function App() {
         
         <Route path="/camps" element={<Camps />} />
         <Route path="/camps/create" element={<CampCreate />} />
+        
+        <Route path="/emergency" element={<EmergencySearch />} />
+        
+        <Route path="/receive" element={<ReceiveBlood />} />
         
         <Route path="/donate" element={<DonationCreate />} />
       </Routes>
